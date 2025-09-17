@@ -23,6 +23,7 @@ import panel as pn
 import pandas as pd
 import matplotlib.pyplot as plt
 from savant_data_api import SAVANT_DATA_API
+from sequences import SEQUENCING_API
 
 # Loads javascript dependencies and configures Panel (required)
 pn.extension()
@@ -31,6 +32,8 @@ pn.extension()
 api = SAVANT_DATA_API()
 api.load_data("savant_data.csv")
 
+seq_api = SEQUENCING_API()
+seq_api.load_data()
 
 
 # WIDGET DECLARATIONS
@@ -51,6 +54,9 @@ height = pn.widgets.IntSlider(name="Height", start=1, end=20, step=1, value=6)
 
 #Line Chart Widgets
 pitch = pn.widgets.Select(name='Pitch', options=api.get_pitch_types(pitcher.value)) # Pitch to be analyzed in line chart
+
+# Heatmap Widgets
+heat_type = pn.widgets.Select(name='Heatmap Type', options=['Relative Success Lift', 'Raw Success Rate'], value='Raw Success Rate')
 
 
 
@@ -145,11 +151,18 @@ def get_line_chart(pitcher, pitch, width, height):
     plt.grid(True)
     return plt.gcf()
 
+def get_sequence_heatmaps(heat_type, width, height):
+    """
+    Wrapper function to generate sequence heatmaps
+    """
+    return seq_api.get_heatmaps(heat_type, width, height)
+
 
 
 
 
 # CALLBACK BINDINGS (Connecting widgets to callback functions)
+seq = pn.bind(get_sequence_heatmaps, heat_type, width, height)
 plot = pn.bind(get_scatter_plot, pitcher, pitches, width, height)
 
 # Watch for changes in pitcher widget
@@ -157,9 +170,20 @@ pitcher.param.watch(update_pitch_checkboxes, 'value')
 pitcher.param.watch(update_pitch_select, 'value')
 line = pn.bind(get_line_chart, pitcher, pitch, width, height)
 
+
+
 # DASHBOARD WIDGET CONTAINERS ("CARDS")
 
 card_width = 320
+
+heat_card = pn.Card(
+    pn.Column(
+        # Widget 1
+        heat_type
+    ),
+
+    title="Heatmap Size", width=card_width, collapsed=False
+)
 
 search_card = pn.Card(
     pn.Column(
@@ -195,11 +219,14 @@ line_card = pn.Card(
 )
 
 
+
+
 # LAYOUT
 
 layout = pn.template.FastListTemplate(
     title="Pitcher Data Explorer",
     sidebar=[
+        heat_card,
         search_card,
         plot_card,
         line_card,
@@ -207,8 +234,10 @@ layout = pn.template.FastListTemplate(
     theme_toggle=False,
     main=[
         pn.Tabs(
-            ("Scatter Plot", plot),  # Replace None with callback binding
-            ("Line Chart", line),  # Replace None with callback binding
+            ("Pitch Sequence Analysis", seq),  # Replace None with callback binding
+            ("Pitcher Velo-RPM Scatter Plot", plot),  # Replace None with callback binding
+            ("Pitch Usage Line Chart", line),  # Replace None with callback binding
+            
             active=0  # Which tab is active by default?
         )
 

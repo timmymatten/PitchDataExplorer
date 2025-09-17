@@ -17,15 +17,6 @@ class SAVANT_DATA_API:
         """
         # load the data
         self.data = pd.read_csv(filename)
-        # keep only useful columns
-        self.data = self.data[['pitch_type', 'game_date',
-                               'release_speed', 'release_spin_rate', 'player_name',
-                               'events', 'description',
-                               'des', 'game_type', 'stand',
-                               'p_throws', 'type', 'bb_type',
-                               'balls', 'strikes', 'hit_distance_sc',
-                               'launch_speed', 'launch_angle',
-                               'pitch_number', 'delta_home_win_exp']]
 
     def get_pitchers(self):
         """
