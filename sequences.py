@@ -59,6 +59,7 @@ class SEQUENCING_API:
             return 'Other'
         
     def get_clean_pitches(self):
+        # Exclude certain pitch descriptions as they are not relevant for sequencing
         exclude_desc = ['foul_bunt', 'missed_bunt', 'bunt_foul_tip', 'pitchout']
 
         return self.pitches[
